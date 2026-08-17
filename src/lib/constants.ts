@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
-  appName: 'NutriByte',
+  appName: 'NutriByte PRO',
   version: '1.0.0',
-  tagline: 'Empowering Peak Metabolic Health with Precision Macros',
+  tagline: 'Precision Macro Tracking & Intelligent Metabolic Analytics',
   primaryColor: 'emerald-600',
 };
