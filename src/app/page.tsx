@@ -1,55 +1,125 @@
-import React from 'react';
-import { Activity, Apple, Flame, Droplets } from 'lucide-react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Navbar } from '@/components/Navbar';
+import { MacroCalculatorModal } from '@/components/MacroCalculatorModal';
+import { UserProfile, MacroTargets } from '@/types/nutrition';
+import { calculateMacroTargets } from '@/lib/nutrition-calc';
+import { Flame, Droplet, Dumbbell, Wheat, Beef, HeartHandshake } from 'lucide-react';
+
+const DEFAULT_PROFILE: UserProfile = {
+    age: 24,
+    gender: 'male',
+    weightKg: 72,
+    heightCm: 178,
+    activityLevel: 'moderate',
+    goal: 'lose_weight',
+};
 
 export default function Home() {
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const [isCalcOpen, setIsCalcOpen] = useState(false);
+    const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+    const [targets, setTargets] = useState<MacroTargets>(calculateMacroTargets(DEFAULT_PROFILE));
+
+    // Load profile from local storage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('nutribyte_profile');
+        if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            setProfile(parsed);
+            setTargets(calculateMacroTargets(parsed));
+        } catch (e) {
+            console.error('Failed to parse saved profile', e);
+        }
+        }
+    }, []);
+
+    const handleSaveProfile = (newProfile: UserProfile, newTargets: MacroTargets) => {
+        setProfile(newProfile);
+        setTargets(newTargets);
+        localStorage.setItem('nutribyte_profile', JSON.stringify(newProfile));
+    };
+
     return (
-        <main className="min-h-screen p-6 md:p-12 max-w-7xl mx-auto">
-        <header className="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-6">
-            <div>
-            <div className="flex items-center gap-2 justify-center md:justify-start text-emerald-600 font-bold text-2xl">
-                <Apple className="w-8 h-8" />
-                <span>NutriByte</span>
-            </div>
-            <p className="text-slate-500 mt-1 text-sm">Smart Calorie & Macronutrient Optimization Platform</p>
-            </div>
-            <div className="mt-4 md:mt-0 flex gap-3 justify-center">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                <Activity className="w-3.5 h-3.5" /> v1.0 Foundation Ready
-            </span>
-            </div>
-        </header>
+        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <Navbar
+            onOpenCalculator={() => setIsCalcOpen(true)}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+            {/* Welcome & Goal Banner */}
+            <section className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-emerald-700/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/40 text-emerald-100 border border-emerald-400/20 mb-2">
+                <HeartHandshake className="w-3.5 h-3.5" /> Objective: {profile.goal.replace('_', ' ').toUpperCase()}
+                </span>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Today's Nutrition Compass</h1>
+                <p className="text-emerald-100 text-sm mt-1">
+                Personalized target based on {profile.weightKg}kg bodyweight & {profile.activityLevel.replace('_', ' ')} routine.
+                </p>
+            </div>
+            <button
+                onClick={() => setIsCalcOpen(true)}
+                className="px-4 py-2.5 bg-white text-emerald-900 font-semibold text-sm rounded-xl shadow hover:bg-emerald-50 transition"
+            >
+                Adjust Caloric Goals
+            </button>
+            </section>
+
+            {/* Target Cards Grid */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
                 <Flame className="w-6 h-6" />
-            </div>
-            <div>
-                <h3 className="text-sm font-medium text-slate-500">Target Daily Energy</h3>
-                <p className="text-2xl font-bold text-slate-800">2,200 kcal</p>
-            </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <Droplets className="w-6 h-6" />
-            </div>
-            <div>
-                <h3 className="text-sm font-medium text-slate-500">Hydration Goal</h3>
-                <p className="text-2xl font-bold text-slate-800">2.5 L</p>
-            </div>
+                </div>
+                <div>
+                <p className="text-xs font-medium text-slate-500">Target Calories</p>
+                <h3 className="text-2xl font-bold text-slate-900">{targets.calories} <span className="text-xs font-normal text-slate-500">kcal</span></h3>
+                </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                <Activity className="w-6 h-6" />
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                <Beef className="w-6 h-6" />
+                </div>
+                <div>
+                <p className="text-xs font-medium text-slate-500">Target Protein</p>
+                <h3 className="text-2xl font-bold text-slate-900">{targets.proteinGrams} <span className="text-xs font-normal text-slate-500">grams</span></h3>
+                </div>
             </div>
-            <div>
-                <h3 className="text-sm font-medium text-slate-500">Macro Split</h3>
-                <p className="text-2xl font-bold text-slate-800">40 / 30 / 30</p>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <Wheat className="w-6 h-6" />
+                </div>
+                <div>
+                <p className="text-xs font-medium text-slate-500">Target Carbs</p>
+                <h3 className="text-2xl font-bold text-slate-900">{targets.carbsGrams} <span className="text-xs font-normal text-slate-500">grams</span></h3>
+                </div>
             </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Dumbbell className="w-6 h-6" />
+                </div>
+                <div>
+                <p className="text-xs font-medium text-slate-500">Target Fats</p>
+                <h3 className="text-2xl font-bold text-slate-900">{targets.fatGrams} <span className="text-xs font-normal text-slate-500">grams</span></h3>
+                </div>
             </div>
-        </div>
+            </section>
         </main>
+
+        <MacroCalculatorModal
+            isOpen={isCalcOpen}
+            onClose={() => setIsCalcOpen(false)}
+            currentProfile={profile}
+            onSaveProfile={handleSaveProfile}
+        />
+        </div>
     );
 }
